@@ -5,10 +5,13 @@ export const NamespaceSchema = AuditableSchema.extend({
 	namespaceId: z.string().default(''),
 });
 
+const UUIDSchema = z.string().length(36).default('');
+
 export const UserAccountSchema = NamespaceSchema.extend({
-	userId: z.string().default(''),
+	userId: UUIDSchema,
 	phone: z.string().default(''),
 	name: z.string().default(''),
+	currency: z.string().default(''),
 });
 export type TUserAccount = z.infer<typeof UserAccountSchema>;
 export class UserAccount extends BaseDTO<TUserAccount> {
@@ -19,12 +22,13 @@ export class UserAccount extends BaseDTO<TUserAccount> {
 
 // net balance over time period: get last entry from Transactions table, do opening balance +- amount
 export const TransactionSchema = NamespaceSchema.extend({
-	txnId: z.string().default(''),
+	txnId: UUIDSchema,
 	userId: UserAccountSchema.pick({ userId: true }),
 	amount: z.number().default(0),
 	type: z.enum(['income', 'expense'] as const).default('income'),
 	category: z.string().default(''),
-	openingBalanceInPaise: z.number().default(0),
+	description: z.string().default(''),
+	openingBalance: z.number().default(0),
 });
 export type TTxn = z.infer<typeof TransactionSchema>;
 export class Transactions extends BaseDTO<TTxn> {
@@ -36,8 +40,8 @@ export class Transactions extends BaseDTO<TTxn> {
 // total income, expense
 export const BalanceSchema = NamespaceSchema.extend({
 	userId: UserAccountSchema.pick({ userId: true }),
-	totalIncomeInPaise: z.number().default(0),
-	totalExpenseInPaise: z.number().default(0),
+	totalIncome: z.number().default(0),
+	totalExpense: z.number().default(0),
 });
 export type TBalance = z.infer<typeof BalanceSchema>;
 export class Balance extends BaseDTO<TBalance> {

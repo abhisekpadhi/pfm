@@ -82,7 +82,6 @@ export const deserialize = <T>(data: SerializedObjectProperties<T>): T => {
 export const AuditableSchema = z.object({
 	id: z.number().optional().default(0),
 	createdAt: z.number().default(Date.now),
-	currentActive: z.boolean().default(true),
 });
 
 export const UserAuditableSchema = AuditableSchema.extend({
@@ -105,40 +104,6 @@ export type TApiResponse<T> = {
 	message: string;
 	httpStatusCode: number;
 };
-
-// len <= 14, coz xId is 36 chars long and random part is 21 chars, and _ is used as seprator
-export enum IDFor {
-	login = 'logn', // login prod
-	login_dev = 'logd', // login dev
-	user = 'usr',
-	product = 'prd',
-	variant = 'vrnt',
-	variation = 'vrsn',
-	attribution = 'attr',
-	sku = 'sku',
-	coupon = 'cupn',
-	order = 'ord',
-	orderLine = 'ordln',
-	txn = 'txn', // transaction
-	category = 'cat',
-	subcategory = 'sbct',
-	vertical = 'vert',
-	biz = 'biz',
-	pref = 'pref', // user preference
-	wat = 'wat', // whatsappp token
-	wat_dev = 'watd', // whatsapp token dev
-	media = 'mdia',
-	task = 'task',
-	ticker = 'tkr',
-	tickerName = 'tkrnm',
-	physicalAddress = 'phadr',
-	kyc = 'kyc',
-	taxInvoice = 'inv',
-	inventoryReservation = 'res',
-	chat = 'cht',
-	sseToken = 'sse', // server sent events
-	creditEntry = 'ce',
-}
 
 export const PaginatedSchema = z.object({
 	limit: z.number(),
@@ -184,5 +149,3 @@ export const ListOfStringSchema = z
 			: v;
 	}, z.array(z.string()))
 	.default([]);
-
-export type TAction = 'added' | 'removed' | 'updated';
