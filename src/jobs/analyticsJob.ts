@@ -1,8 +1,12 @@
+import { LOG } from '@/common/utils/logger';
+import analyticsWorkflows from '@/workflows/analyticsWorkflows';
 import { CronJob } from 'cron';
 export default CronJob.from({
-	cronTime: '* * * * * *', // every second
-	onTick: function () {
-		// console.log('You will see this message every second');
+	cronTime: '*/5 * * * * *', // every second
+	onTick: async function () {
+		LOG.info({ msg: 'analytics job started' });
+		await analyticsWorkflows.aggregate();
+		LOG.info({ msg: 'analytics job completed' });
 	},
 	timeZone: 'Asia/Kolkata',
 });

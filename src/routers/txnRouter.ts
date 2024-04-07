@@ -10,7 +10,7 @@ export const transactionsRouter: Router = (() => {
 		validateRequest(TransactionUpdateReqSchema),
 		async (req, res) => {
 			const input = TransactionUpdateReqSchema.parse(req.body);
-			console.log('principal>', (req as any).principal);
+
 			const out = await transactionsWorkflows.recordTransaction({
 				...input,
 				...(req as any).principal,

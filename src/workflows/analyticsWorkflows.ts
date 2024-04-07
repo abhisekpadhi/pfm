@@ -40,6 +40,7 @@ class AnalyticsWorkflow {
 			monthlyBalanceMap: { [month: string]: number };
 		};
 	}) => {
+		// console.log('analytics delta>', input);
 		const currentMonthYear = `${dayjs().month()}-${dayjs().year()}`;
 		const lastMonthYear = `${dayjs().subtract(1, 'month').month()}-${dayjs().subtract(1, 'month').year()}`;
 
@@ -48,37 +49,36 @@ class AnalyticsWorkflow {
 			const userId = key.split(':')[1];
 			const redisKey = config.redisKeyAnalytics(userId, namespaceId);
 			const cached = await cache.get(redisKey);
-			const analyticsData =
-				cached.length > 0 && cached != null
-					? AnalyticsSchema.parse(JSON.parse(cached))
-					: new Analytics({
-							userId,
-							namespaceId,
-							currentMonthYear,
-							lastMonthYear,
-						}).data;
+			const analyticsData = cached
+				? AnalyticsSchema.parse(JSON.parse(cached))
+				: new Analytics({
+						userId,
+						namespaceId,
+						currentMonthYear,
+						lastMonthYear,
+					}).data;
 
 			// update income & expense
-			analyticsData.totalExpense += input[userId].expense;
-			analyticsData.totalIncome += input[userId].income;
+			analyticsData.totalExpense += input[key].expense;
+			analyticsData.totalIncome += input[key].income;
 
 			// update last month & current month balance
 			if (analyticsData.currentMonthYear != currentMonthYear) {
 				(analyticsData.netBalanceCurrMonth =
-					input[userId].monthlyBalanceMap[currentMonthYear] ?? 0),
+					input[key].monthlyBalanceMap[currentMonthYear] ?? 0),
 					(analyticsData.currentMonthYear = currentMonthYear);
 			} else {
 				analyticsData.netBalanceCurrMonth +=
-					input[userId].monthlyBalanceMap[currentMonthYear] ?? 0;
+					input[key].monthlyBalanceMap[currentMonthYear] ?? 0;
 			}
 
 			if (analyticsData.lastMonthYear != lastMonthYear) {
 				(analyticsData.netBalanceLastMonth =
-					input[userId].monthlyBalanceMap[lastMonthYear] ?? 0),
+					input[key].monthlyBalanceMap[lastMonthYear] ?? 0),
 					(analyticsData.lastMonthYear = lastMonthYear);
 			} else {
 				analyticsData.netBalanceLastMonth +=
-					input[userId].monthlyBalanceMap[lastMonthYear] ?? 0;
+					input[key].monthlyBalanceMap[lastMonthYear] ?? 0;
 			}
 			await this.updateAnalytics(analyticsData);
 		}
@@ -88,13 +88,15 @@ class AnalyticsWorkflow {
 		// fetch offset from redis
 		let offset = parseInt(
 			(await cache.get(config.redisKeyForTxnTableIdOffset)) ?? '0',
-			10,
 		);
 		const limit = 100;
+
 		// read chunked from txn table
 		let records = await this.txnRepo.getAllTransactions({ offset, limit });
+
 		const aggregatedData = {};
-		while (records.length > 0) {
+
+		while (records && records.length > 0) {
 			// aggregate data & write to redis
 			const groupedByUserId = _.groupBy(
 				records.map((it) => it.data),
@@ -124,8 +126,16 @@ class AnalyticsWorkflow {
 				});
 				aggregatedData[userId] = { expense, income, monthlyBalanceMap };
 			});
-			offset += limit;
-			records = await this.txnRepo.getAllTransactions({ offset, limit });
+			if (records.length < limit) {
+				offset = records[records.length - 1].data.id;
+				break;
+			} else {
+				offset += limit;
+				records = await this.txnRepo.getAllTransactions({
+					offset,
+					limit,
+				});
+			}
 		}
 
 		// continue reading from db until no more rows, then commit offset to redis

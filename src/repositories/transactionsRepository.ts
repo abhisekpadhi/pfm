@@ -4,7 +4,7 @@ import { Transactions } from '@/models/transaction';
 import _ from 'lodash';
 import SqlString from 'sqlstring';
 
-class TrasnactionRepository {
+class TransactionRepository {
 	private readonly table = config.tables.transaction;
 	private readonly insert = 'insert into ' + config.tables.transaction;
 
@@ -24,7 +24,7 @@ class TrasnactionRepository {
 	};
 
 	getAllTransactions = async (input: { offset: number; limit: number }) => {
-		return DB.all<Transactions>(
+		return await DB.all<Transactions>(
 			SqlString.format('select * from ?? where id > ? limit ?', [
 				this.table,
 				input.offset,
@@ -35,4 +35,4 @@ class TrasnactionRepository {
 	};
 }
 
-export default new TrasnactionRepository();
+export default new TransactionRepository();

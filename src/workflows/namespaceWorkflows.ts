@@ -27,7 +27,7 @@ class NamespaceWorkflow {
 				fromDB.data,
 			);
 		} catch (error) {
-			console.log(error);
+
 			LOG.info({
 				msg: 'failed to insert & get namespace',
 				input,

@@ -1,6 +1,5 @@
 import { ApiUtils } from '@/common/utils/apiUtils';
 import config from '@/common/utils/config';
-
 import jwtUtils from '@/common/utils/jwtUtils';
 import { LOG } from '@/common/utils/logger';
 import cache from '@/common/utils/redisUtils';
@@ -62,7 +61,6 @@ class UserAccountWorkflow {
 				newAccount.data,
 			);
 		} catch (e) {
-			console.log(e);
 			LOG.info({ msg: 'Error in register account', input, error: e });
 			return config.response.serverError;
 		}
@@ -98,7 +96,6 @@ class UserAccountWorkflow {
 				config.responseMessages.otpSent,
 			);
 		} catch (e) {
-			console.log(e);
 			LOG.info({ msg: 'Error in requesting OTP', input, error: e });
 			return config.response.serverError;
 		}
