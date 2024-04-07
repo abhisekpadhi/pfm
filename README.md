@@ -10,7 +10,7 @@ Personal finance management micro-service
 
 ## API doc
 
--   Read the API doc [here](./docs/design.md)
+-   Read the API doc [here](./docs/api.md)
 -   Postman collection [here](./docs/postman_collection.json)
 
 ## How to setup local dev
