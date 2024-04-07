@@ -17,7 +17,7 @@ Personal finance management micro-service
 
 1. Setup the following servers
 
-    - Mysql 8.3.0
+    - Mysql 8.3.0, Run DDL [here](./docs/ddl.sql)
     - Redis 7.2.4
     - Node.js > 20
 
