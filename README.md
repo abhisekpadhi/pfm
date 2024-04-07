@@ -2,6 +2,10 @@
 
 Personal finance management micro-service
 
+## Video walkthrough
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/_5qZwMmAlr0/0.jpg)](http://www.youtube.com/watch?v=_5qZwMmAlr0 "Video walkthrough")
+
+
 ## System design
 
 ![high level design](./docs/hld.png 'High level design')
