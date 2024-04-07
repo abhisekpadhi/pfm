@@ -2,21 +2,9 @@ import { ApiUtils } from './apiUtils';
 import { env } from './envConfig';
 const { makeResponse } = ApiUtils;
 
-export const __DEV__ = process.env['ENV'] ?? 'dev';
-
 export default Object.freeze({
-	env: (process.env['ENV'] ?? 'dev') as string,
-	webEnv: (process.env['NEXT_PUBLIC_ZUT_ENV'] ?? 'dev') as string,
-	symbols: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz',
-	digits: '0123456789',
-	jwtSecret: (process.env['JWT_SECRET'] ?? 'notARealSecret') as string,
-	otpLen: 4,
-	server: {
-		host: '0.0.0.0',
-		port: 3000,
-	},
-	brandNameBase: 'zut',
-
+	jwtSecret: env.JWT_SECRET,
+	redis: { url: env.REDIS_URL },
 	db: {
 		connectionLimit: 30,
 		host: env.DB_HOST,
@@ -25,18 +13,37 @@ export default Object.freeze({
 		database: env.DB_NAME,
 	},
 	response: {
-		ok: makeResponse<null>(true, null, 'ok', 200),
-		conflict: makeResponse<null>(false, null, 'conflict', 409),
-		empty: makeResponse<null>(true, null, 'empty', 204),
-		processing: makeResponse<null>(true, null, 'processing', 102),
-		badRequest: makeResponse<null>(false, null, 'invalid request', 400),
-		unauthorised: makeResponse<null>(false, null, 'server error', 401),
-		forbidden: makeResponse<null>(false, null, 'forbidden', 403),
-		notFound: makeResponse<null>(false, null, 'not found', 404),
-		expired: makeResponse<null>(false, null, 'expired', 410),
-		serverError: makeResponse<null>(false, null, 'server error', 500),
-		redirect: (toUrl: string) =>
-			makeResponse<string>(false, toUrl, 'redirect', 302),
+		ok: makeResponse<null>(true, 200, null, 'ok'),
+		badRequest: makeResponse<null>(false, 400, null, 'invalid request'),
+		unauthorised: makeResponse<null>(false, 401, null, 'server error'),
+		forbidden: makeResponse<null>(false, 403, null, 'forbidden'),
+		notFound: makeResponse<null>(false, 404, null, 'not found'),
+		serverError: makeResponse<null>(false, 500, null, 'server error'),
 	},
-	tables: {},
+	tables: {
+		namespace: 'namespace',
+		balance: 'balance',
+		transaction: 'transaction',
+		userAccount: 'user_account',
+	},
+	otpLen: 6,
+	otpExpiryInSeconds: 5 * 60,
+	idgen: {
+		customAlphabets: '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+	},
+	redisKeyOtp: (email: string, namespaceId: string) =>
+		`otp:${namespaceId}:${email}`,
+	redisKeyAnalytics: (userId: string, namespaceId: string) =>
+		`analytics:${namespaceId}:${userId}`,
+	redisKeyForTxnTableIdOffset: 'analytics:offset:transaction',
+	responseMessages: {
+		accountNotFound: 'Account not found, please register first',
+		otpSent: 'OTP has been sent to your email',
+		otpMismatch: 'OTP Mismatch, please try again',
+		otpExpired: 'OTP Expired, please try again',
+		accountAlreadyExists: 'Account already exists',
+		namespaceNotExits: 'Namespace does not exits',
+		credsNotExits: 'Credentials not found',
+		credsInvalid: 'Credentials are invalid',
+	},
 });

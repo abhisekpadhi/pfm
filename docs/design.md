@@ -36,7 +36,7 @@ Microservice that allows user to manage personal finance.
 
 ## HLD
 
-![high level design](hld.png 'High level deisng')
+![high level design](hld.png 'High level design')
 
 ## LLD
 

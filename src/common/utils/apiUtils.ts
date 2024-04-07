@@ -1,4 +1,5 @@
-import { TApiResponse } from "@/models/base";
+import { TApiResponse } from '@/models/base';
+import { StatusCodes } from 'http-status-codes';
 
 type arrType = string[] | number[];
 const makeParams = (payload: { [k: string]: string | number | arrType }) => {
@@ -28,52 +29,31 @@ const makeParams = (payload: { [k: string]: string | number | arrType }) => {
 					? `${key}=${encodeURIComponent(
 							payload[key] as string | number,
 							// eslint-disable-next-line no-mixed-spaces-and-tabs
-					  )}`
+						)}`
 					: `&${key}=${encodeURIComponent(
 							payload[key] as string | number,
 							// eslint-disable-next-line no-mixed-spaces-and-tabs
-					  )}`;
+						)}`;
 		}
 	}
 	return result;
 };
 
-export type HTTP_CODE =
-	| 200
-	| 204
-	| 401
-	| 400
-	| 404
-	| 403
-	| 409
-	| 500
-	| 410
-	| 102
-	| 302;
-
 const makeResponse = <T>(
 	success: boolean,
+	code: StatusCodes = 200,
 	data?: T | null,
 	message = '',
-	httpStatusCode: HTTP_CODE = 200,
 ): TApiResponse<T> => {
 	return {
 		success,
+		code,
 		data: data ?? null,
 		message: message ?? '',
-		httpStatusCode,
 	};
-};
-const makeResponseWithData = <T>(
-	data?: T | null,
-	message = '',
-	httpStatusCode: HTTP_CODE = 200,
-) => {
-	return makeResponse((data ?? null) !== null, data, message, httpStatusCode);
 };
 
 export const ApiUtils = {
 	makeResponse,
 	makeParams,
-	makeResponseWithData,
 };

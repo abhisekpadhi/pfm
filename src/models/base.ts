@@ -1,6 +1,4 @@
 import { z } from 'zod';
-import { BoolishNumber } from '../lib/zodUtils';
-import SuperJSON from 'superjson';
 
 // any is required here, since it also includes class type
 export type Klass = { new (...arg: any[]): any };
@@ -49,7 +47,7 @@ export const deserialize = <T>(data: SerializedObjectProperties<T>): T => {
 				try {
 					if (maybeJsonStringRegex.test(value)) {
 						// first try SuperJSON
-						const parsed = SuperJSON.parse(value);
+						const parsed = JSON.parse(value);
 						if (parsed) {
 							obj[key] = parsed;
 							continue;
@@ -84,68 +82,11 @@ export const AuditableSchema = z.object({
 	createdAt: z.number().default(Date.now),
 });
 
-export const UserAuditableSchema = AuditableSchema.extend({
-	userId: z.string().default(''),
-});
-
-export const UserVerifiedAuditableSchema = UserAuditableSchema.extend({
-	verified: z.nativeEnum(BoolishNumber).default(BoolishNumber.false),
-});
-
-export enum CommonStatus {
-	ACTIVE = 'ACTIVE',
-	IN_REVIEW = 'IN_REVIEW',
-	INACTIVE = 'INACTIVE',
-}
-
-export type TApiResponse<T> = {
+export type TApiResponse<T = null> = {
 	success: boolean;
 	data: T | null;
 	message: string;
-	httpStatusCode: number;
+	code: number;
 };
 
-export const PaginatedSchema = z.object({
-	limit: z.number(),
-	offset: z.number(),
-});
-
-export type TFSM<T> = { [k: string]: { transitions: T[] } };
-export class BaseFSM<T> {
-	current: string;
-	fsm: TFSM<T>;
-
-	constructor(current: string, fsm: TFSM<T>) {
-		this.current = current;
-		this.fsm = fsm;
-	}
-
-	is = (state: T) => {
-		return this.current === state;
-	};
-
-	can = (to: T) => {
-		return this.fsm[this.current].transitions.includes(to);
-	};
-
-	transitions = (from?: string) => {
-		return this.fsm[from ?? this.current].transitions;
-	};
-}
-
-// ready made schemas
-export const EntityIdSchema = z.string().max(36).min(1);
-export const PaginationSchema = z.object({
-	limit: z.number(),
-	offset: z.number(),
-});
-// export const ListOfStringSchema = z.array(z.string()).default([]);
-export const ListOfStringSchema = z
-	.preprocess((v) => {
-		return typeof v === 'string'
-			? v === ''
-				? []
-				: JSON.parse(v as string)
-			: v;
-	}, z.array(z.string()))
-	.default([]);
+export const UUIDSchema = z.string().length(36).default('');

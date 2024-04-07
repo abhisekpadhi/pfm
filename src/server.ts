@@ -10,6 +10,11 @@ import errorHandler from '@/common/middleware/errorHandler';
 import rateLimiter from '@/common/middleware/rateLimiter';
 import requestLogger from '@/common/middleware/requestLogger';
 import { env } from '@/common/utils/envConfig';
+import { namespaceRouter } from './routers/namespaceRouter';
+import { userAccountRouter } from './routers/userAccountRouter';
+import { transactionsRouter } from './routers/txnRouter';
+import { analyticsRouter } from './routers/analyticsRouter';
+import authMiddleware from './common/middleware/authMiddleare';
 
 const logger = pino({ name: 'server start' });
 const app: Express = express();
@@ -18,6 +23,7 @@ const app: Express = express();
 app.set('trust proxy', true);
 
 // Middlewares
+app.use(express.json());
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(helmet());
 app.use(rateLimiter);
@@ -25,9 +31,15 @@ app.use(rateLimiter);
 // Request logging
 app.use(requestLogger());
 
+// auth
+app.use(authMiddleware);
+
 // Routes
 // app.use('/health-check', healthCheckRouter);
-// app.use('/users', userRouter);
+app.use('/namespace', namespaceRouter);
+app.use('/account', userAccountRouter);
+app.use('/transaction', transactionsRouter);
+app.use('/analytics', analyticsRouter);
 
 // Error handlers
 app.use(errorHandler());

@@ -1,20 +1,38 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ZodError, ZodSchema } from 'zod';
+import { TApiResponse } from '@/models/base';
+import config from './config';
+import { ApiUtils } from './apiUtils';
 
-import { ResponseStatus, ServiceResponse } from '@/common/models/serviceResponse';
-
-export const handleServiceResponse = (serviceResponse: ServiceResponse<any>, response: Response) => {
-  return response.status(serviceResponse.statusCode).send(serviceResponse);
+export const handleResponse = (
+	serviceResponse: TApiResponse<any>,
+	response: Response,
+) => {
+	return response.status(serviceResponse.code).send(serviceResponse);
 };
 
-export const validateRequest = (schema: ZodSchema) => (req: Request, res: Response, next: NextFunction) => {
-  try {
-    schema.parse({ body: req.body, query: req.query, params: req.params });
-    next();
-  } catch (err) {
-    const errorMessage = `Invalid input: ${(err as ZodError).errors.map((e) => e.message).join(', ')}`;
-    const statusCode = StatusCodes.BAD_REQUEST;
-    res.status(statusCode).send(new ServiceResponse<null>(ResponseStatus.Failed, errorMessage, null, statusCode));
-  }
-};
+export const validateRequest =
+	(schema: ZodSchema) =>
+	(req: Request, res: Response, next: NextFunction) => {
+		try {
+			schema.parse(req.body);
+			next();
+		} catch (e) {
+			if (e instanceof ZodError) {
+				const errorMessage = `Invalid input`;
+				res.status(StatusCodes.BAD_REQUEST).json(
+					ApiUtils.makeResponse(
+						false,
+						StatusCodes.BAD_REQUEST,
+						e.issues,
+						errorMessage,
+					),
+				);
+			} else {
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+					config.response.serverError,
+				);
+			}
+		}
+	};

@@ -1,17 +1,13 @@
-import { z } from 'zod';
-import { AuditableSchema, BaseDTO } from './base';
-
-export const NamespaceSchema = AuditableSchema.extend({
-	namespaceId: z.string().default(''),
-});
-
-const UUIDSchema = z.string().length(36).default('');
+import { string, z } from 'zod';
+import { BaseDTO, UUIDSchema } from './base';
+import { NamespaceSchema } from './namepsace';
+import config from '@/common/utils/config';
 
 export const UserAccountSchema = NamespaceSchema.extend({
 	userId: UUIDSchema,
-	phone: z.string().default(''),
-	name: z.string().default(''),
-	currency: z.string().default(''),
+	email: z.string().email(),
+	name: z.string().min(3).max(64),
+	currency: z.string().length(3).default('INR'),
 });
 export type TUserAccount = z.infer<typeof UserAccountSchema>;
 export class UserAccount extends BaseDTO<TUserAccount> {
@@ -20,32 +16,29 @@ export class UserAccount extends BaseDTO<TUserAccount> {
 	}
 }
 
-// net balance over time period: get last entry from Transactions table, do opening balance +- amount
-export const TransactionSchema = NamespaceSchema.extend({
-	txnId: UUIDSchema,
-	userId: UserAccountSchema.pick({ userId: true }),
-	amount: z.number().default(0),
-	type: z.enum(['income', 'expense'] as const).default('income'),
-	category: z.string().default(''),
-	description: z.string().default(''),
-	openingBalance: z.number().default(0),
+export const UserAccountRegisterReqSchema = UserAccountSchema.pick({
+	namespaceId: true,
+	email: true,
+	name: true,
+	currency: true,
 });
-export type TTxn = z.infer<typeof TransactionSchema>;
-export class Transactions extends BaseDTO<TTxn> {
-	constructor(init: Partial<TTxn>) {
-		super(TransactionSchema.parse(init));
-	}
-}
+export type TUserAccountRegisterReq = z.infer<
+	typeof UserAccountRegisterReqSchema
+>;
 
-// total income, expense
-export const BalanceSchema = NamespaceSchema.extend({
-	userId: UserAccountSchema.pick({ userId: true }),
-	totalIncome: z.number().default(0),
-	totalExpense: z.number().default(0),
+export const UserAccountLoginOTPReqSchema = UserAccountSchema.pick({
+	namespaceId: true,
+	email: true,
 });
-export type TBalance = z.infer<typeof BalanceSchema>;
-export class Balance extends BaseDTO<TBalance> {
-	constructor(init: Partial<TBalance>) {
-		super(BalanceSchema.parse(init));
-	}
-}
+export type TUserAccountLoginOTPReq = z.infer<
+	typeof UserAccountLoginOTPReqSchema
+>;
+
+export const UserAccountLoginReqSchema = UserAccountSchema.pick({
+	email: true,
+	namespaceId: true,
+}).extend({ otp: z.string().length(config.otpLen) });
+export type TUserAccountLoginReq = z.infer<typeof UserAccountLoginReqSchema>;
+
+
+export type TPrincipal = { userId: string; namespaceId: string }
