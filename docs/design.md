@@ -38,11 +38,28 @@ Microservice that allows user to manage personal finance.
 
 ![high level design](hld.png 'High level design')
 
+**Usage pattern insight:**
+
+-   Users tend to check balance often
+-   They tend to record their expenses in batch/bulk in one sitting when they have leisure time
+
+**Decoupling read heavy & write heavy paths**
+
+-   Recording transactions will require high write throughput
+-   Analytics API will requrie read heavy throughput
+-   We cannot afford to loose recorded transactions, so kafka helps to buffer at scale until we commit to DB
+-   Anaytics data (ex: total expense, income, closing balance over specified period) can be near-realtime consistent, which is achieved thorugh a background job that aggregates transaction records to compute analytics data
+
+**Tradeoff**
+
+-   To decouple read & write paths, the analytics data is not instantly synced but near-realtime, <5s delay
+
 ## LLD
 
 ### Server runtime: Node.js
 
--   All API calls are network I/O, with nodejs we can do non-blocking network i/o, single nodes can serve high throughput (200 RPS on 1VCPU & 1GB RAM)
+-   All API calls are network I/O, with nodejs we can do non-blocking network i/o,
+-   Each pod can serve high throughput (200 RPS per 1VCPU & 1GB RAM)
 
 ### Query patterns
 
@@ -120,6 +137,10 @@ Microservice that allows user to manage personal finance.
 -   To get net balance over time period:
 
     -   Get last entry from Transactions table, do opening balance +-(type) amount
+
+-   To reduce cost on DB
+
+    -   Archive old data in cold storage like S3/Glacier
 
 ## Security
 
